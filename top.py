@@ -82,7 +82,7 @@ def add_fun(solution):
 
 # 创建LearningRateScheduler回调函数实例，传入学习率调整函数
 def lr_schedule(epoch):
-    initial_lr = 0.0008
+    initial_lr = 0.0005
     final_lr = 0.0001
     decay_per_epoch = (initial_lr - final_lr) / singleton.num_epoch  # 假设训练100个epochs，计算每个epoch的学习率下降量
     return max(0, initial_lr - epoch * decay_per_epoch)  # 确保学习率不小于0
