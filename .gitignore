@@ -1,7 +1,5 @@
 __pycache__/
-res/tmp/link_loads_glb.npy
-res/tmp/link_loads_mlu.npy
-res/tmp/solutions_glb.npy
+res/tmp/
 heatmap_feegat.png
 heatmap_mlu.png
 network_structure.png

@@ -68,13 +68,13 @@ def main(_):
   
     sgd = tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.0, nesterov=False)
     rms_prop = tf.keras.optimizers.RMSprop(learning_rate=0.001)
-    adam = tf.keras.optimizers.Adam(learning_rate=0.0005)
+    adam = tf.keras.optimizers.Adam()
 
     model.compile(optimizer=adam, loss=kl_divergence_loss_sum)
 
     lr_scheduler_callback = tf.keras.callbacks.LearningRateScheduler(lr_schedule)
-    #model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback,lr_scheduler_callback])
-    model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback])
+    model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback,lr_scheduler_callback])
+    #model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback])
     model.summary()
 
     model.save('test_model.h5',overwrite = True)
