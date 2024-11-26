@@ -443,7 +443,6 @@ class LossHistory(Callback):
         self.init = False
 
     def on_epoch_end(self, epoch, logs=None):
-
         if logs is None:
             logs = {}
         self.history.append(logs.copy())
@@ -455,20 +454,12 @@ class LossHistory(Callback):
                     self.best_loss = current_loss
                     formatted_loss = "{:.4f}".format(current_loss)
 
-                    if self.init==False:
-                        os.mkdir(singleton.models_path)
-                        self.init = True
-
                     self.model.save(f'{singleton.models_path}/e{epoch}_l{formatted_loss}.h5')  # 保存模型，这里文件名可根据需要修改
     
     def on_train_end(self,logs):
-        import json
-        if self.init==False:
-            os.mkdir(singleton.models_path)
-            self.init = True
-
         self.model.save(f'{singleton.models_path}/final_model.h5')
 
+        import json
         with open(f'{singleton.models_path}/history.json', 'w') as f:
             json.dump(self.history, f)
 
@@ -482,7 +473,7 @@ class FEEGAT(tf.keras.Model):
 
         self.callback = LossHistory()
         self.num_heads = 4       # 注意力头的数量
-        self.set = [8,32,64,32,8]
+        self.set = singleton.set
 
         self.mylayers = []
         

@@ -63,17 +63,20 @@ def main(_):
     print('x2.shape:',np.shape(x2))
     print(' y.shape:',np.shape(y)) 
 
+    num_epoch = singleton.num_epoch
+    batch_size = singleton.batch_size
+
     model = FEEGAT()
 
   
     sgd = tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.0, nesterov=False)
-    rms_prop = tf.keras.optimizers.RMSprop(learning_rate=0.001)
+    rms_prop = tf.keras.optimizers.RMSprop(learning_rate=0.0005)
     adam = tf.keras.optimizers.Adam()
 
     model.compile(optimizer=adam, loss=kl_divergence_loss_sum)
 
     lr_scheduler_callback = tf.keras.callbacks.LearningRateScheduler(lr_schedule)
-    model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback,lr_scheduler_callback])
+    model.fit(x,y,epochs=num_epoch,batch_size=batch_size,callbacks = [model.callback,lr_scheduler_callback])
     #model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback])
     model.summary()
 

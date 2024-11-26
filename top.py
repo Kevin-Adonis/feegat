@@ -1,3 +1,5 @@
+import os
+import json
 import numpy as np
 import tensorflow as tf
 from datetime import datetime
@@ -32,16 +34,40 @@ class Singleton:
         self.feeg_link_loads = []
 
 
-        self.num_epoch = 5000
+        self.num_epoch = 10000
+        self.batch_size = 16
+        self.initial_lr = 0.0005
+        self.final_lr = 0.0001
+        self.set = [8,32,64,32,8]
+
         self.model_save = True
+
+        self.save_para()
         
 
-    def some_method(self):
-        print(self.value)
+    def save_para(self):
+        para = {
+            'num_epoch':self.num_epoch,
+            'K':self.K,
+            'batch_size':self.batch_size,
+            'initial_lr':self.initial_lr,
+            'final_lr':self.final_lr,
+        }
 
-    
+        os.mkdir(singleton.models_path)
+        
+        with open(f'{self.models_path}/para.json', 'w') as f:
+            json.dump(para, f)
+
+
 
 singleton = Singleton()
+
+def lr_schedule(epoch):
+    initial_lr = singleton.initial_lr
+    final_lr = singleton.final_lr
+    decay_per_epoch = (initial_lr - final_lr) / singleton.num_epoch  # 假设训练100个epochs，计算每个epoch的学习率下降量
+    return max(0, initial_lr - epoch * decay_per_epoch)  # 确保学习率不小于0
 
 
 def calualte_solution_load(sol,tm_idx):
@@ -81,11 +107,7 @@ def add_fun(solution):
                 line[i] = 0
 
 # 创建LearningRateScheduler回调函数实例，传入学习率调整函数
-def lr_schedule(epoch):
-    initial_lr = 0.0004
-    final_lr = 0.0001
-    decay_per_epoch = (initial_lr - final_lr) / singleton.num_epoch  # 假设训练100个epochs，计算每个epoch的学习率下降量
-    return max(0, initial_lr - epoch * decay_per_epoch)  # 确保学习率不小于0
+
 
 
 
