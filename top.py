@@ -34,10 +34,10 @@ class Singleton:
         self.feeg_link_loads = []
 
 
-        self.num_epoch = 10000
+        self.num_epoch = 5000
         self.batch_size = 16
         self.initial_lr = 0.0005
-        self.final_lr = 0.0001
+        self.final_lr = 0.0002
         self.set = [8,32,64,32,8]
 
         self.model_save = True
@@ -54,7 +54,7 @@ class Singleton:
             'final_lr':self.final_lr,
         }
 
-        os.mkdir(singleton.models_path)
+        os.mkdir(self.models_path)
         
         with open(f'{self.models_path}/para.json', 'w') as f:
             json.dump(para, f)

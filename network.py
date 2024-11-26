@@ -482,7 +482,6 @@ class FEEGAT(tf.keras.Model):
 
         num_heads = self.num_heads
 
-
         for i in self.set:
             layer0,layer1 = getLayer(num_heads,i)
             self.mylayers.append([layer0,layer1])
