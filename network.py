@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from top import singleton
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 import tensorflow as tf
@@ -463,6 +464,27 @@ class LossHistory(Callback):
         with open(f'{singleton.models_path}/history.json', 'w') as f:
             json.dump(self.history, f)
 
+    def on_train_end(self, logs):
+        self.model.save(f'{singleton.models_path}/final_model.h5')
+
+        import json
+        with open(f'{singleton.models_path}/history.json', 'w') as f:
+            json.dump(self.history, f)
+
+        # 绘制损失图像并保存的新逻辑
+        self.plot_and_save_loss()
+
+    def plot_and_save_loss(self):
+        losses = [log['loss'] for log in self.history]
+        epochs = range(1, len(losses) + 1)
+
+        plt.plot(epochs, losses)
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title('Training Loss over Epochs')
+        plt.savefig(f'{singleton.models_path}/loss.png')
+        plt.close()
+
 
 def getLayer(heads,dims):
     return BipartiteGraphMultiHeadAttentionLayer(dims,heads,'average'),GraphMultiHeadAttentionLayer(dims,heads)
@@ -550,6 +572,19 @@ def kl_divergence_loss_sum(y_true, y_pred,epsilon=1e-10):
     #total_kl_divergence = tf.reduce_sum(row_kl_divergences)/tf.cast(batch_size, tf.float32)
     total_kl_divergence = tf.reduce_sum(row_kl_divergences)
     return total_kl_divergence
+
+def exp_range_clr(epoch, base_lr=0.0001, max_lr=0.005, step_size=2000, gamma=0.99):
+    cycle = epoch % step_size
+    if cycle == 0:
+        return base_lr
+    else:
+        return min(max_lr, base_lr * (gamma ** (cycle)))
+
+def triangular_clr(epoch, base_lr=0.0001, max_lr=0.005, cycle_length=10):
+    cycle = epoch % cycle_length
+    if cycle < cycle_length / 2:
+        return base_lr + (max_lr - base_lr) * cycle / (cycle_length / 2)
+    return max_lr - (max_lr - base_lr) * (cycle - cycle_length / 2) / (cycle_length / 2)
 
 
 custom_objects = {

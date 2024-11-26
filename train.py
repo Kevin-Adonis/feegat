@@ -16,7 +16,7 @@ import json
 from networkx.readwrite import json_graph
 
 from network import FEEGAT,kl_divergence_loss_sum
-from network import custom_objects
+from network import custom_objects,triangular_clr,exp_range_clr
 
 import tensorflow as tf
 from draw import draw_mlu,draw_sum
@@ -75,8 +75,11 @@ def main(_):
 
     model.compile(optimizer=adam, loss=kl_divergence_loss_sum)
 
-    lr_scheduler_callback = tf.keras.callbacks.LearningRateScheduler(lr_schedule)
-    model.fit(x,y,epochs=num_epoch,batch_size=batch_size,callbacks = [model.callback,lr_scheduler_callback])
+    lr_liner = tf.keras.callbacks.LearningRateScheduler(lr_schedule)
+    lr_cycle = tf.keras.callbacks.LearningRateScheduler(lambda epoch: triangular_clr(epoch))
+    lr_cycle_exp = tf.keras.callbacks.LearningRateScheduler(lambda epoch: exp_range_clr(epoch))
+
+    model.fit(x,y,epochs=num_epoch,batch_size=batch_size,callbacks = [model.callback,lr_cycle])
     #model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback])
     model.summary()
 

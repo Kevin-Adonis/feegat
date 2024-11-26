@@ -47,11 +47,12 @@ class Singleton:
 
     def save_para(self):
         para = {
-            'num_epoch':self.num_epoch,
             'K':self.K,
+            'num_epoch':self.num_epoch,
             'batch_size':self.batch_size,
             'initial_lr':self.initial_lr,
             'final_lr':self.final_lr,
+            'set':self.set
         }
 
         os.mkdir(self.models_path)
