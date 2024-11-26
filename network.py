@@ -449,7 +449,7 @@ class LossHistory(Callback):
         self.history.append(logs.copy())
 
         if singleton.model_save:
-            if epoch > singleton.num_epoch/5 and epoch % 100 == 0:
+            if epoch % 100 == 0:
                 current_loss = logs.get('loss')  # 获取当前 epoch 的损失值
                 if current_loss < self.best_loss:
                     self.best_loss = current_loss
