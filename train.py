@@ -19,7 +19,7 @@ from network import FEEGAT,kl_divergence_loss_sum
 from network import custom_objects,triangular_clr,exp_range_clr
 
 import tensorflow as tf
-from draw import draw_mlu,draw_sum
+from draw import draw_mlu,draw_sum,draw_box,draw_cdf
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -157,12 +157,14 @@ def main(_):
         'opti_sum': opti_sum,
         'topk_sum': topk_sum,
         'crit_sum': crit_sum,
-        'ecmp_mlu': ecmp_sum,
-        'feeg_mlu': feeg_sum
+        'ecmp_sum': ecmp_sum,
+        'feeg_sum': feeg_sum
     }
 
     draw_mlu(data_mlu)
     draw_sum(data_sum)
+    draw_box(data_mlu)
+    draw_cdf(data_mlu)
 
 
 

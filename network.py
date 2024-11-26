@@ -55,7 +55,7 @@ class Layer2D(Layer):
             y = self.activation(y)
         else:
             y = self.activation(y,axis=-1)
-            
+
         return y
 
     def compute_output_shape(self, input_shape):
@@ -643,8 +643,8 @@ def kl_divergence_loss_sum(y_true, y_pred,epsilon=1e-10):
         fn_output_signature=tf.float32
     )
     # 计算所有行的 KL 散度总和
-    #total_kl_divergence = tf.reduce_sum(row_kl_divergences)/tf.cast(batch_size, tf.float32)
-    total_kl_divergence = tf.reduce_sum(row_kl_divergences)
+    total_kl_divergence = tf.reduce_sum(row_kl_divergences)/tf.cast(batch_size, tf.float32)
+    #total_kl_divergence = tf.reduce_sum(row_kl_divergences)
     return total_kl_divergence
 
 def exp_range_clr(epoch, base_lr=0.0001, max_lr=0.005, step_size=2000, gamma=0.99):
