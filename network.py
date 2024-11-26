@@ -580,7 +580,7 @@ def exp_range_clr(epoch, base_lr=0.0001, max_lr=0.005, step_size=2000, gamma=0.9
     else:
         return min(max_lr, base_lr * (gamma ** (cycle)))
 
-def triangular_clr(epoch, base_lr=0.0001, max_lr=0.005, cycle_length=10):
+def triangular_clr(epoch, base_lr=0.0001, max_lr=0.0005, cycle_length=100):
     cycle = epoch % cycle_length
     if cycle < cycle_length / 2:
         return base_lr + (max_lr - base_lr) * cycle / (cycle_length / 2)
