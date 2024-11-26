@@ -15,6 +15,68 @@ from tensorflow.keras.activations import softmax
 from datetime import datetime
 from tensorflow.keras.callbacks import Callback
 
+class Layer2D(Layer):
+    def __init__(self,
+                 output_dim,
+                 activation='relu',
+                 kernels=None,
+                 **kwargs):
+        self.output_dim = output_dim
+
+        self.activation_name = activation
+        self.activation = activations.get(activation)
+
+        self.kernels = []
+        if kernels is not None:
+            self.kernels = kernels
+
+        super(Layer2D, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        input_dim = input_shape[0][-1]
+
+        kernel = self.add_weight(
+            shape=(input_dim, self.output_dim),
+            initializer='glorot_uniform',
+            regularizer=None,
+            constraint=None,
+            name='kernel'
+        )
+        self.kernels.append(kernel)
+
+        self.built = True
+        super(Layer2D, self).build(input_shape)
+
+    def call(self, inputs):
+        x = inputs[0]
+        y = K.dot(x, self.kernels[0])
+
+        if self.activation_name == 'relu':
+            y = self.activation(y)
+        else:
+            y = self.activation(y,axis=-1)
+            
+        return y
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0][1], self.output_dim)
+
+    def get_config(self):
+        config = super(Layer2D, self).get_config()
+        config.update({
+            'output_dim': self.output_dim,
+            'activation': activations.serialize(self.activation),
+            'kernels': [kernel.numpy().tolist() for kernel in self.kernels]
+        })
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(
+            output_dim=config['output_dim'],
+            activation=activations.deserialize(config['activation']),
+            kernels=[np.array(kernel) for kernel in config['kernels']],
+        )
 
 class LastBipartiteGraphMultiHeadAttentionLayer(Layer):
 
@@ -77,7 +139,6 @@ class LastBipartiteGraphMultiHeadAttentionLayer(Layer):
             self.kernels_f.append(kernel_f)
             self.kernels_e.append(kernel_e)
             self.kernels_a.append(attn_kernel_f2e)
-
 
         self.built = True
         super(LastBipartiteGraphMultiHeadAttentionLayer, self).build(input_shape)
@@ -148,8 +209,6 @@ class LastBipartiteGraphMultiHeadAttentionLayer(Layer):
             kernels_e=[np.array(kernel) for kernel in config['kernels_e']],
             kernels_a=[np.array(kernel) for kernel in config['kernels_a']],
         )
-
-
 
 class BipartiteGraphMultiHeadAttentionLayer(Layer):
 
@@ -326,7 +385,6 @@ class BipartiteGraphMultiHeadAttentionLayer(Layer):
 
         return instance
 
-
 class GraphMultiHeadAttentionLayer(Layer):
     def __init__(self, output_dim, num_heads=1,kernels=None,attn_kernels = None, **kwargs):
         """
@@ -433,9 +491,6 @@ class GraphMultiHeadAttentionLayer(Layer):
         instance.attn_kernels = [np.array(kernel) for kernel in config['attn_kernels']]
         return instance
 
-
-
-
 class LossHistory(Callback):
     def __init__(self):
         super(LossHistory, self).__init__()
@@ -449,20 +504,14 @@ class LossHistory(Callback):
         self.history.append(logs.copy())
 
         if singleton.model_save:
-            if epoch % 100 == 0:
+            if (epoch+1) % 100 == 0:
                 current_loss = logs.get('loss')  # 获取当前 epoch 的损失值
                 if current_loss < self.best_loss:
                     self.best_loss = current_loss
                     formatted_loss = "{:.4f}".format(current_loss)
 
-                    self.model.save(f'{singleton.models_path}/e{epoch}_l{formatted_loss}.h5')  # 保存模型，这里文件名可根据需要修改
-    
-    def on_train_end(self,logs):
-        self.model.save(f'{singleton.models_path}/final_model.h5')
+                    self.model.save(f'{singleton.models_path}/e{epoch}_l{formatted_loss}.h5') 
 
-        import json
-        with open(f'{singleton.models_path}/history.json', 'w') as f:
-            json.dump(self.history, f)
 
     def on_train_end(self, logs):
         self.model.save(f'{singleton.models_path}/final_model.h5')
@@ -485,7 +534,6 @@ class LossHistory(Callback):
         plt.savefig(f'{singleton.models_path}/loss.png')
         plt.close()
 
-
 def getLayer(heads,dims):
     return BipartiteGraphMultiHeadAttentionLayer(dims,heads,'average'),GraphMultiHeadAttentionLayer(dims,heads)
 
@@ -495,27 +543,36 @@ class FEEGAT(tf.keras.Model):
 
         self.callback = LossHistory()
         self.num_heads = 4       # 注意力头的数量
-        self.set = singleton.set
 
-        self.mylayers = []
+        self.feegat_layers_info = singleton.model_layers[0]
+        self.layer2d_layers_info = singleton.model_layers[1]
+
+        self.feegat_layers = []
+        self.layer2d_layers = []
         
     def build(self, input_shape):
         super(FEEGAT, self).build(input_shape)
 
         num_heads = self.num_heads
 
-        for i in self.set:
+        for i in self.feegat_layers_info[:-1]:
             layer0,layer1 = getLayer(num_heads,i)
-            self.mylayers.append([layer0,layer1])
+            self.feegat_layers.append([layer0,layer1])
 
-        self.layer_last = LastBipartiteGraphMultiHeadAttentionLayer(singleton.K,num_heads,'average')
+        self.layer_last = LastBipartiteGraphMultiHeadAttentionLayer(self.feegat_layers_info[-1],num_heads,'average')
+
+        for i in self.layer2d_layers_info[:-1]:
+            self.layer2d_layers.append(Layer2D(i,'relu'))
+
+        if len(self.layer2d_layers_info)!=0:
+            self.layer2d_layers.append(Layer2D(self.layer2d_layers_info[-1],'softmax'))
 
 
     def call(self, inputs):
 
         f, e = inputs
 
-        for layers in self.mylayers:
+        for layers in self.feegat_layers:
             l1 = layers[0]
             l2 = layers[1]
             f,e = l1([f, e])
@@ -523,33 +580,50 @@ class FEEGAT(tf.keras.Model):
 
         f = self.layer_last([f, e])
 
+        for layer in self.layer2d_layers:
+            f = layer([f])
+
         return f
     def get_config(self):
         config = super(FEEGAT, self).get_config()
         config.update({
             'num_heads': self.num_heads,
-            'mylayers': [],
+            'feegat_layers': [],
+            'layer2d_layers': [],
         })
-        for layer_pair in self.mylayers:
+        for layer_pair in self.feegat_layers:
             layer0_config = tf.keras.layers.serialize(layer_pair[0])
             layer1_config = tf.keras.layers.serialize(layer_pair[1])
-            config['mylayers'].append([layer0_config, layer1_config])
+            config['feegat_layers'].append([layer0_config, layer1_config])
+
         layer_last_config = tf.keras.layers.serialize(self.layer_last)
         config['layer_last_config'] = layer_last_config
+
+        for layer2d in self.layer2d_layers:
+            layer2d_config = tf.keras.layers.serialize(layer2d)
+            config['layer2d_layers'].append(layer2d_config)
+
         return config
     
     @classmethod
     def from_config(cls, config):
         instance = cls()
         instance.num_heads = config['num_heads']
-        instance.mylayers = []
-        for layer_pair_config in config['mylayers']:
+
+        instance.feegat_layers = []
+        for layer_pair_config in config['feegat_layers']:
             layer0 = tf.keras.layers.deserialize(layer_pair_config[0])
             layer1 = tf.keras.layers.deserialize(layer_pair_config[1])
-            instance.mylayers.append([layer0, layer1])
-        instance.layer_last = tf.keras.layers.deserialize(config['layer_last_config'])
-        return instance
+            instance.feegat_layers.append([layer0, layer1])
 
+        instance.layer_last = tf.keras.layers.deserialize(config['layer_last_config'])
+
+        instance.layer2d_layers = []
+        for layer2d_config in config['layer2d_layers']:
+            layer2d = tf.keras.layers.deserialize(layer2d_config)
+            instance.layer2d_layers.append(layer2d)
+
+        return instance
    
     
 #@tf.function
@@ -592,6 +666,7 @@ custom_objects = {
     'BipartiteGraphMultiHeadAttentionLayer': BipartiteGraphMultiHeadAttentionLayer,
     'GraphMultiHeadAttentionLayer': GraphMultiHeadAttentionLayer,
     'LastBipartiteGraphMultiHeadAttentionLayer': LastBipartiteGraphMultiHeadAttentionLayer,
-    'FEEGAT': FEEGAT
+    'FEEGAT': FEEGAT,
+    'Layer2D':Layer2D
 }
 

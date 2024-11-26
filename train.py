@@ -79,12 +79,13 @@ def main(_):
     lr_cycle = tf.keras.callbacks.LearningRateScheduler(lambda epoch: triangular_clr(epoch))
     lr_cycle_exp = tf.keras.callbacks.LearningRateScheduler(lambda epoch: exp_range_clr(epoch))
 
-    model.fit(x,y,epochs=num_epoch,batch_size=batch_size,callbacks = [model.callback,lr_cycle])
+    model.fit(x,y,epochs=num_epoch,batch_size=batch_size,callbacks = [model.callback,lr_liner])
     #model.fit(x,y,epochs=singleton.num_epoch,batch_size=16,callbacks = [model.callback])
     model.summary()
 
-    model.save('test_model.h5',overwrite = True)
 
+    #测试模型是否能够重新保存和加载
+    model.save('test_model.h5',overwrite = True)
     m = tf.keras.models.load_model('test_model.h5', custom_objects=custom_objects)
     m.summary()
 
@@ -111,7 +112,7 @@ def main(_):
     feeg_sum = []
 
 
-    for i,pre in enumerate(predictions[:20]):
+    for i,pre in enumerate(predictions[:]):
         idx = i+1
 
         ll = calualte_solution_load(pre,idx)

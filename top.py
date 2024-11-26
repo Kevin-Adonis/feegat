@@ -27,21 +27,21 @@ class Singleton:
         self.topk_link_loads = []
         self.ecmp_link_loads = []
         self.glob_link_loads = []
-
         self.glob_solutions = []
-        
         self.feeg_solutions = []
         self.feeg_link_loads = []
 
 
         self.num_epoch = 5000
         self.batch_size = 16
-        self.initial_lr = 0.0005
-        self.final_lr = 0.0002
-        self.set = [8,32,64,32,8]
-
+        self.initial_lr = 0.001
+        self.final_lr = 0.0001
+        self.model_layers = [
+                            [8,32,64,128],
+                             [64,32,16,4]
+                            ]
+        
         self.model_save = True
-
         self.save_para()
         
 
@@ -52,7 +52,7 @@ class Singleton:
             'batch_size':self.batch_size,
             'initial_lr':self.initial_lr,
             'final_lr':self.final_lr,
-            'set':self.set
+            'model_layers':self.model_layers
         }
 
         os.mkdir(self.models_path)
