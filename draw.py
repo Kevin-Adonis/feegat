@@ -6,6 +6,7 @@ import matplotlib
 from matplotlib.colors import ListedColormap
 from top import singleton
 
+
 print(sns.__version__)
 print(matplotlib.__version__)
 print(np.__version__)
@@ -16,7 +17,7 @@ cmap = ListedColormap(plt.get_cmap('tab10')(np.linspace(0, 1, 7)))
 
 #plt.figure(figsize=(16, 8))
 
-def draw_mlu(data,b_show=False):
+def draw_line_mlu(data,b_show=False):
     plt.clf()
     for i,key in enumerate(data.keys()):
         color = cmap(i)
@@ -35,7 +36,7 @@ def draw_mlu(data,b_show=False):
     plt.close()
 
 
-def draw_sum(data,b_show=False):
+def draw_line_sum(data,b_show=False):
     plt.clf()
     for i,key in enumerate(data.keys()):
         color = cmap(i)
@@ -51,7 +52,7 @@ def draw_sum(data,b_show=False):
     plt.savefig(f'{singleton.models_path}/sum.png')
     plt.close()
 
-def draw_box(data,b_show=False):
+def draw_box_mlu(data,b_show=False):
     plt.clf()
     vals = data.values()
     keys = data.keys()
@@ -62,10 +63,10 @@ def draw_box(data,b_show=False):
     plt.legend()
     if b_show:
         plt.show()
-    plt.savefig(f'{singleton.models_path}/box.png')
+    plt.savefig(f'{singleton.models_path}/box_mlu.png')
     plt.close()
 
-def draw_cdf(data,b_show=False):
+def draw_cdf_cdf(data,b_show=False):
     plt.clf()
 
     for i,key in enumerate(data.keys()):
@@ -80,5 +81,65 @@ def draw_cdf(data,b_show=False):
     plt.legend()
     if b_show:
         plt.show()
-    plt.savefig(f'{singleton.models_path}/cdf.png')
+    plt.savefig(f'{singleton.models_path}/cdf_mlu.png')
     plt.close()
+
+
+
+
+def draw_box_sum(data,b_show=False):
+    plt.clf()
+    vals = data.values()
+    keys = data.keys()
+    plt.boxplot(vals, labels=keys)
+    plt.title("Multiple Box Plots Comparison")
+    plt.xlabel("Data Groups")
+    plt.ylabel("Sum")
+    plt.legend()
+    if b_show:
+        plt.show()
+    plt.savefig(f'{singleton.models_path}/box_sum.png')
+    plt.close()
+
+def draw_cdf_sum(data,b_show=False):
+    plt.clf()
+
+    for i,key in enumerate(data.keys()):
+        sorted_data1 = np.sort(data[key])
+        n1 = len(sorted_data1)
+        cdf = np.arange(1, n1 + 1) / n1
+        plt.plot(sorted_data1, cdf, label=key)
+
+    plt.title("CDF")
+    plt.xlabel("Data Value")
+    plt.ylabel("Sum Cumulative Probability")
+    plt.legend()
+    if b_show:
+        plt.show()
+    plt.savefig(f'{singleton.models_path}/cdf_sum.png')
+    plt.close()
+
+
+def draw_heatmap(key,data,b_show=False,vamx = 0.10):
+    plt.clf()
+    graph = np.zeros((singleton.num_nodes, singleton.num_nodes))
+
+    for idx,load in enumerate(data):
+        s,d = singleton.idx2edge[idx]
+        graph[s][d] = load
+    
+    g = sns.heatmap(graph, cmap='viridis',vmin=0, vmax=vamx)
+    if b_show:
+        plt.show()
+    plt.savefig(f'{singleton.models_path}/heatmap_{key}.png')
+    plt.close()
+
+
+def draw_2dheatmap(key,data,b_show=False):
+    plt.clf()
+    g = sns.heatmap(data, cmap='viridis',vmin=0, vmax=1)
+    if b_show:
+        plt.show()
+    plt.savefig(f'{singleton.models_path}/heatmap_{key}.png')
+    plt.close()
+        

@@ -19,7 +19,7 @@ from network import FEEGAT,kl_divergence_loss_sum
 from network import custom_objects,triangular_clr,exp_range_clr
 
 import tensorflow as tf
-from draw import draw_mlu,draw_sum,draw_box,draw_cdf
+from draw import draw_line_mlu,draw_line_sum,draw_box_mlu,draw_cdf_cdf
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -161,10 +161,10 @@ def main(_):
         'feeg_sum': feeg_sum
     }
 
-    draw_mlu(data_mlu)
-    draw_sum(data_sum)
-    draw_box(data_mlu)
-    draw_cdf(data_mlu)
+    draw_line_mlu(data_mlu)
+    draw_line_sum(data_sum)
+    draw_box_mlu(data_mlu)
+    draw_cdf_cdf(data_mlu)
 
 
 
